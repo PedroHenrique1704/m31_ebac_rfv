@@ -4,6 +4,9 @@ import pandas            as pd
 import streamlit         as st
 import numpy             as np
 
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
 from datetime            import datetime
 from PIL                 import Image
 from io                  import BytesIO
@@ -189,12 +192,36 @@ def main():
         st.write('Quantidade de clientes por tipo de ação')
         st.write(df_RFV['acoes de marketing/crm'].value_counts(dropna=False))
 
+
+    
+    # Aplicação do KMeans
+    st.write('## Clusterização com K-Means')
+    st.write("Para entender melhor os segmentos de clientes, vamos aplicar o algoritmo de clusterização K-Means.")
+
+    # Padronizando os dados antes de aplicar o KMeans
+    scaler = StandardScaler()
+    df_RFV_scaled = scaler.fit_transform(df_RFV[['Recencia', 'Frequencia', 'Valor']])
+
+    # Definindo e ajustando o modelo
+    kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+    df_RFV['Cluster'] = kmeans.fit_predict(df_RFV_scaled)
+
+    # Mostrando a distribuição dos clusters
+    st.write("Distribuição dos clusters:")
+    st.write(df_RFV['Cluster'].value_counts())
+
+    # Mostrando os primeiros dados com os clusters atribuídos
+    st.write("## Tabela RFV com Clusters")
+    st.write(df_RFV.head())
+
+    # Download do arquivo atualizado com os clusters
+    df_xlsx = to_excel(df_RFV)
+    st.download_button(label='📥 Download com Clusters',
+                        data=df_xlsx,
+                        file_name='RFV_com_Clusters.xlsx')
+
 if __name__ == '__main__':
 	main()
-    
-
-
-
 
 
 
